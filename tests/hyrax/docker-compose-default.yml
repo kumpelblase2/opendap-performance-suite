@@ -1,0 +1,28 @@
+version: '3'
+
+services:
+  influx:
+    image: influxdb:latest
+    volumes:
+      - ./influxdb2:/var/lib/influxdb2
+    ports:
+      - 8086:8086
+    environment:
+      - DOCKER_INFLUXDB_INIT_MODE=setup
+      - DOCKER_INFLUXDB_INIT_USERNAME=telegraf
+      - DOCKER_INFLUXDB_INIT_PASSWORD=telegraf
+      - DOCKER_INFLUXDB_INIT_ORG=telegraf
+      - DOCKER_INFLUXDB_INIT_ADMIN_TOKEN=telegraf
+      - DOCKER_INFLUXDB_INIT_BUCKET=telegraf
+  backend:
+    build: ./
+    depends_on:
+      - influx
+    links:
+      - influx
+    ports:
+      - "8080:8080"
+    volumes:
+      - /mnt/storage/netcdf-data-files:/usr/share/hyrax:ro
+    env_file:
+      - "hyrax-default.env"

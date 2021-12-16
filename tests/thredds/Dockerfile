@@ -1,0 +1,9 @@
+FROM unidata/thredds-docker:5.2
+
+RUN wget -qO- https://repos.influxdata.com/influxdb.key | apt-key add -
+RUN echo "deb https://repos.influxdata.com/ubuntu bullseye stable" | tee /etc/apt/sources.list.d/influxdb.list
+RUN apt update && apt install -y telegraf && rm -r /var/lib/apt/lists/*
+COPY telegraf.conf /etc/telegraf/telegraf.conf
+
+COPY start.sh $CATALINA_HOME/bin/start.sh
+CMD ["start.sh"]
