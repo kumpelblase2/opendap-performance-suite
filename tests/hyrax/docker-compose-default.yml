@@ -1,5 +1,9 @@
 version: '3'
 
+volumes:
+  data_files:
+    external: true
+
 services:
   hyrax-influx:
     image: influxdb:latest
@@ -23,6 +27,6 @@ services:
     ports:
       - "8080:8080"
     volumes:
-      - /mnt/storage/netcdf-data-files:/usr/share/hyrax:ro
+      - data_files:/usr/share/hyrax:ro
     env_file:
       - "hyrax-default.env"

@@ -1,5 +1,9 @@
 version: '3'
 
+volumes:
+  data_files:
+    external: true
+
 services:
   dars-influx:
     image: influxdb:latest
@@ -23,6 +27,6 @@ services:
     ports:
       - "8080:80"
     volumes:
-      - /mnt/storage/netcdf-data-files:/work/data:ro
+      - data_files:/work/data:ro
     env_file:
       - "dars-default.env"

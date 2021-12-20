@@ -1,5 +1,9 @@
 version: '3'
 
+volumes:
+  data_files:
+    external: true
+
 services:
   thredds-influx:
     image: influxdb:latest
@@ -24,7 +28,7 @@ services:
       - "8080:8080"
     volumes:
       - ./content/catalog.xml:/usr/local/tomcat/content/thredds/catalog.xml:ro
-      - /mnt/storage/netcdf-data-files:/media/data:ro
+      - data_files:/media/data:ro
     env_file:
       - "thredds-default.env"
     deploy:
