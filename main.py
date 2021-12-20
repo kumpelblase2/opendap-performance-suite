@@ -1,6 +1,7 @@
 import argparse
 import os
 import logging
+import time
 
 from backend import setup_backend, datapath_for_backend
 from testsuite import run_tests, store_results
@@ -22,7 +23,7 @@ parser.add_argument('--backend', '-b', type=str, help='Start the given backend s
 parser.add_argument('--reruns', '-r', type=int, default=3, help='Amount of reruns of each test to take')
 parser.add_argument('--backend-warmup', '-w', type=int, default=10,
                     help='Warmup time (in seconds) for the started backend to settle down')
-parser.add_argument('--output', '-o', type=argparse.FileType('w'), default='results.csv',
+parser.add_argument('--output', '-o', type=argparse.FileType('w'), default=f'results-{str(int(time.time()))}.csv',
                     help='File to write recorded data to')
 parser.add_argument('--verbose', '-v', default=False, help='Enable verbose output', action='store_true')
 
