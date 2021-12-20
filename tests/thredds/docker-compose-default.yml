@@ -1,7 +1,7 @@
 version: '3'
 
 services:
-  influx:
+  thredds-influx:
     image: influxdb:latest
     volumes:
       - ./influxdb2:/var/lib/influxdb2
@@ -14,12 +14,12 @@ services:
       - DOCKER_INFLUXDB_INIT_ORG=telegraf
       - DOCKER_INFLUXDB_INIT_ADMIN_TOKEN=telegraf
       - DOCKER_INFLUXDB_INIT_BUCKET=telegraf
-  backend:
+  thredds-backend:
     build: ./
     depends_on:
-      - influx
+      - thredds-influx
     links:
-      - influx
+      - thredds-influx
     ports:
       - "8080:8080"
     volumes:
