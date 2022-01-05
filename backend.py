@@ -46,6 +46,8 @@ def wait_backend(container):
 
 def shutdown_backend(backend, _tests):
     logging.info("Shutting down backend...")
+    subprocess.run(['docker-compose', '-f', f'{SCRIPT_LOCATION}/tests/{backend}/docker-compose-default.yml', 'exec', backend + '-influx', 'bash', '-c', 'influx query --token telegraf --org telegraf -r \'from(bucket:"telegraf") |> range(start:-1d)\' > /mnt/influx-data/output.csv'], check=True)
+    subprocess.run(['docker-compose', '-f', f'{SCRIPT_LOCATION}/tests/{backend}/docker-compose-default.yml', 'exec', backend + '-influx', '/bin/chown', '1000:1000', '/mnt/influx-data/output.csv'], check=True)
     subprocess.run(['docker-compose', '-f', f'{SCRIPT_LOCATION}/tests/{backend}/docker-compose-default.yml', 'down'],
                    check=True, capture_output=True)
 

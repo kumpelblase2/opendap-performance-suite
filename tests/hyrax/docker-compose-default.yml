@@ -8,7 +8,7 @@ services:
   hyrax-influx:
     image: influxdb:latest
     volumes:
-      - ./influxdb2:/var/lib/influxdb2
+      - ./measurement-output:/mnt/influx-data
     ports:
       - 8086:8086
     environment:
