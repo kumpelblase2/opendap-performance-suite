@@ -32,11 +32,11 @@ def startup_backend(backend):
         error_text = e.stderr.decode('utf-8').strip()
         logging.error("Could not start backend. Exit code: %d, Error: %s", e.returncode, error_text)
         exit(1)
-    return backend + '-backend-1'
+    return backend + '-' + backend + '-backend-1'
 
 
 def wait_backend(container):
-    logging.info("Waiting for backend to healthy...")
+    logging.info("Waiting for backend to be healthy...")
     while True:
         if is_container_healthy(container):
             break
