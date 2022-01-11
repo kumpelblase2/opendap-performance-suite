@@ -9,7 +9,7 @@ SCRIPT_LOCATION = os.path.dirname(os.path.realpath(__file__))
 BACKEND_RELATIVE_PATHS = {
     'thredds': 'thredds/dodsC',
     'dars': 'data',
-    'hyrax': ''
+    'hyrax': 'opendap'
 }
 
 def datapath_for_backend(backend):
