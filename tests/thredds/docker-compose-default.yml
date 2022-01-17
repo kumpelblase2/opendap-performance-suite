@@ -31,8 +31,3 @@ services:
       - data_files:/media/data:ro
     env_file:
       - "thredds-default.env"
-    deploy:
-      resources:
-        limits:
-          cpus: '0.50'
-          memory: 1024M
