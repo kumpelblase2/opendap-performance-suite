@@ -25,12 +25,14 @@ def run_tests(tests, files, reruns=3):
     return results
 
 
-def store_results(results, output_file):
+def store_results(results, output_file, metadata=[]):
     with output_file as f:
-        f.write(';'.join(['Test', 'Dataset', 'Step', 'Run', 'Time']) + '\n')
+        f.write('#' + ' - '.join(metadata) + '\n')
+        f.write(';'.join(['Test', 'Dataset', 'Step', 'Run', 'Time', 'Start', 'End']) + '\n')
         for test in results.keys():
             test_data = results[test]
             for dataset in test_data:
                 for i, run in enumerate(test_data[dataset], start=1):
                     for key in run.keys():
-                        f.write(';'.join([test, dataset, key, str(i), str(run[key])]) + '\n')
+                        time_data = run[key]
+                        f.write(';'.join([test, dataset, key, str(i), str(time_data['total']), str(time_data['start']), str(time_data['end'])]) + '\n')

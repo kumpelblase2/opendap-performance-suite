@@ -16,7 +16,11 @@ class Context:
     def end(self, name='default'):
         current = time.time()
         start = self.start_times[name]
-        self.times[name] = current - start
+        self.times[name] = {
+            'start': start,
+            'end': current,
+            'total': current - start
+        }
         self.start_times.pop(name)
 
     def finish_run(self):
