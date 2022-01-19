@@ -27,6 +27,6 @@ services:
     ports:
       - "8080"
     volumes:
-      - data_files:/usr/share/hyrax:ro
+      - data_files:/usr/share/hyrax/testAll/:ro
     env_file:
       - "hyrax-default.env"

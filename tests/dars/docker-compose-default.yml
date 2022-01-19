@@ -27,6 +27,6 @@ services:
     ports:
       - "80"
     volumes:
-      - data_files:/work/data:ro
+      - data_files:/work/data/testAll:ro
     env_file:
       - "dars-default.env"
