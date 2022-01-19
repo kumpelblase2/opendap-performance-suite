@@ -2,11 +2,13 @@ import logging
 import time
 
 import scripts.simple
-import scripts.mean
+import scripts.mean_time
+import scripts.mean_area
 
 TESTS = {
     'dataset-access': scripts.simple.SimpleTest(),
-    'mean': scripts.mean.MeanTest()
+    'mean-time': scripts.mean_time.MeanTimeTest(),
+    'mean-area': scripts.mean_area.MeanAreaTest()
 }
 
 

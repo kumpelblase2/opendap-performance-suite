@@ -9,7 +9,8 @@ from testsuite import run_tests, store_results
 AVAILABLE_BACKENDS = ['thredds', 'hyrax', 'dars']
 AVAILABLE_TESTS = {
     'dataset-access': 'Simple accessing test',
-    'mean': 'Calculate a mean value at a specific point in time over an area'
+    'mean-time': 'Calculate a mean value at a specific point in space over all time values',
+    'mean-area': 'Calculate a mean value at a specific point in time the full area'
 }
 POSSIBLE_TEST_VALUES = list(AVAILABLE_TESTS.keys()) + ['ALL']
 SCRIPT_LOCATION = os.path.dirname(os.path.realpath(__file__))
