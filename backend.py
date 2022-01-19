@@ -18,6 +18,15 @@ BACKEND_PORTS = {
     'hyrax': 8080
 }
 
+query = """
+from(bucket:"telegraf") 
+|> range(start:-1d)
+|> filter(fn: (r) => 
+    contains(value: r._field, set: ["active", "io_time", "read_bytes", "reads", "usage_iowait", "usage_system", "usage_user"])
+)
+|> keep(columns: ["_time","_value","_field","_measurement", "cpu", "name"])
+"""
+
 
 def datapath_for_backend(backend):
     return BACKEND_RELATIVE_PATHS[backend]
@@ -67,7 +76,7 @@ def wait_backend(container):
 
 def shutdown_backend(backend, _tests):
     logging.info("Shutting down backend...")
-    subprocess.run(['docker-compose', '-f', f'{SCRIPT_LOCATION}/tests/{backend}/docker-compose-default.yml', 'exec', backend + '-influx', 'bash', '-c', 'influx query --token telegraf --org telegraf -r \'from(bucket:"telegraf") |> range(start:-1d)\' > /mnt/influx-data/output.csv'], check=True)
+    subprocess.run(['docker-compose', '-f', f'{SCRIPT_LOCATION}/tests/{backend}/docker-compose-default.yml', 'exec', backend + '-influx', 'bash', '-c', f'influx query --token telegraf --org telegraf -r \'{query}\' > /mnt/influx-data/output.csv'], check=True)
     subprocess.run(['docker-compose', '-f', f'{SCRIPT_LOCATION}/tests/{backend}/docker-compose-default.yml', 'exec', backend + '-influx', '/bin/chown', '1000:1000', '/mnt/influx-data/output.csv'], check=True)
     subprocess.run(['docker-compose', '-f', f'{SCRIPT_LOCATION}/tests/{backend}/docker-compose-default.yml', 'down'],
                    check=True, capture_output=True)
