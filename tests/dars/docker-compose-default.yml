@@ -25,7 +25,7 @@ services:
     links:
       - dars-influx
     ports:
-      - "8080:80"
+      - "80"
     volumes:
       - data_files:/work/data:ro
     env_file:

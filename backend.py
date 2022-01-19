@@ -12,6 +12,13 @@ BACKEND_RELATIVE_PATHS = {
     'hyrax': 'opendap'
 }
 
+BACKEND_PORTS = {
+    'thredds': 8080,
+    'dars': 80,
+    'hyrax': 8080
+}
+
+
 def datapath_for_backend(backend):
     return BACKEND_RELATIVE_PATHS[backend]
 
@@ -32,7 +39,21 @@ def startup_backend(backend):
         error_text = e.stderr.decode('utf-8').strip()
         logging.error("Could not start backend. Exit code: %d, Error: %s", e.returncode, error_text)
         exit(1)
-    return backend + '-' + backend + '-backend-1'
+    internal_port = BACKEND_PORTS[backend]
+    container_name = backend + '-' + backend + '-backend-1'
+    try:
+        format_ = '{{(index (index .NetworkSettings.Ports "' + str(internal_port) + '/tcp") 0).HostPort}}'
+        proc = subprocess.run(['docker', 'inspect', f'--format=\'{format_}\'', container_name], capture_output=True, check=True)
+        external_port = int(proc.stdout.decode('utf-8').strip().strip("'").strip('"'))
+    except subprocess.CalledProcessError as e:
+        error_text = e.stderr.decode('utf-8').strip()
+        logging.error("Could not determine port of backend. Exit code: %d, Error: %s", e.returncode, error_text)
+        exit(1)
+    
+    return {
+        'container': container_name,
+        'port': external_port
+    }
 
 
 def wait_backend(container):
@@ -54,10 +75,11 @@ def shutdown_backend(backend, _tests):
 
 def setup_backend(backend, tests, warmup_time=10):
     atexit.register(shutdown_backend, backend, tests)
-    container = startup_backend(backend)
+    container_info = startup_backend(backend)
     if backend == 'thredds':
-        wait_backend(container)
+        wait_backend(container_info['container'])
     logging.info("Backend ready.")
     logging.info("Waiting for the backend to be warm...")
     time.sleep(warmup_time)
     logging.info("Warmup done.")
+    return container_info

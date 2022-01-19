@@ -25,7 +25,7 @@ services:
     links:
       - hyrax-influx
     ports:
-      - "8080:8080"
+      - "8080"
     volumes:
       - data_files:/usr/share/hyrax:ro
     env_file:

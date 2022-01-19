@@ -44,9 +44,9 @@ for test in tests:
 
 backend_base = args.backend_base
 if backend:
-    setup_backend(backend, tests, args.backend_warmup)
+    container_info = setup_backend(backend, tests, args.backend_warmup)
     if backend_base is None:
-        backend_base = f"http://localhost:8080/{datapath_for_backend(backend)}"
+        backend_base = f"http://localhost:{container_info['port']}/{datapath_for_backend(backend)}"
         logging.debug("Backend base URL is set to %s", backend_base)
 
 files = []

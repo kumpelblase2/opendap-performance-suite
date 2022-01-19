@@ -25,7 +25,7 @@ services:
     links:
       - thredds-influx
     ports:
-      - "8080:8080"
+      - "8080"
     volumes:
       - ./content/catalog.xml:/usr/local/tomcat/content/thredds/catalog.xml:ro
       - data_files:/media/data:ro
