@@ -1,0 +1,4 @@
+testAll/ERA5_daily_tp_1979_2018.nc
+testAll/ERA5_daily_tp_1979_2018-0comp.nc
+testAll/ERA5_daily_tp_1979_2018-none.nc
+testAll/ERA5_daily_tp_1979_2018-9comp.nc
