@@ -9,8 +9,6 @@ services:
     image: influxdb:latest
     volumes:
       - ./measurement-output:/mnt/influx-data
-    ports:
-      - 8086:8086
     environment:
       - DOCKER_INFLUXDB_INIT_MODE=setup
       - DOCKER_INFLUXDB_INIT_USERNAME=telegraf
