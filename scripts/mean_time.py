@@ -5,7 +5,7 @@ import xarray
 
 
 class MeanTimeTest(scripts.test.Test):
-    def __init__(self, variable='tp', time_range=range(0, 365*30)):
+    def __init__(self, variable='tp', time_range=None):
         self.variable = variable
         self.time_range = time_range
         super().__init__()
