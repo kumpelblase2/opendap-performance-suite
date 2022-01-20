@@ -92,3 +92,16 @@ def setup_backend(backend, tests, warmup_time=10):
     time.sleep(warmup_time)
     logging.info("Warmup done.")
     return container_info
+
+
+def append_backend_performance(file, backend):
+    lines = []
+    with open(f'tests/{backend}/measurement-output/output.csv') as perf:
+        lines = perf.readlines()
+        lines = [line.rstrip() for line in lines]
+
+    with open(file.name, 'a') as output:
+        output.write('\n')
+        for line in lines:
+            output.write(line)
+            output.write('\n')

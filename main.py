@@ -3,7 +3,7 @@ import os
 import logging
 import time
 
-from backend import setup_backend, datapath_for_backend
+from backend import setup_backend, datapath_for_backend, append_backend_performance
 from testsuite import run_tests, store_results
 
 AVAILABLE_BACKENDS = ['thredds', 'hyrax', 'dars']
@@ -59,6 +59,11 @@ logging.info('Loaded %d datasets to be used for tests.', len(files))
 
 logging.info("Running tests '%s' against '%s'...", ', '.join(tests), backend_base)
 result_runs = run_tests(tests, files, args.reruns)
+metadata = [','.join(tests)]
+if backend:
+    metadata += [backend]
 
-store_results(result_runs, args.output)
+store_results(result_runs, args.output, metadata=metadata)
+if backend:
+    append_backend_performance(args.output, backend)
 logging.info("Written results to %s.", args.output.name)
