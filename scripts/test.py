@@ -37,12 +37,20 @@ class Context:
 
 
 class Test:
+    def __init__(self):
+        self.default_args = self.get_default_args()
+
+    @abstractmethod
+    def get_default_args(self):
+        pass
+
     @abstractmethod
     def do_test(self, context):
         pass
 
-    def run(self, files, reruns):
+    def run(self, files, reruns, args):
         context = Context()
+        self.args = self.default_args | args
         for file in files:
             context.update_file(file)
             for i in range(reruns):

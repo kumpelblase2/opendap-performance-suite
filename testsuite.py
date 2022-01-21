@@ -12,15 +12,15 @@ TESTS = {
 }
 
 
-def run_test(test, files, reruns=3):
-    return TESTS[test].run(files, reruns)
+def run_test(test, files, reruns=3, args={}):
+    return TESTS[test].run(files, reruns, args)
 
 
-def run_tests(tests, files, reruns=3):
+def run_tests(tests, files, reruns=3, args={}):
     start_time = time.time()
     results = {}
     for test in tests:
-        results[test] = run_test(test, files, reruns)
+        results[test] = run_test(test, files, reruns, args)
 
     test_time = time.time() - start_time
     logging.info("Tests finished in %d seconds.", int(test_time))

@@ -5,17 +5,19 @@ import xarray
 
 
 class MeanAreaTest(scripts.test.Test):
-    def __init__(self, variable='tp', time=10):
-        self.variable = variable
-        self.time_slot = time
-        super().__init__()
+    def get_default_args(self):
+        return {
+            'variable': 'tp',
+            'time': '10'
+        }
 
     def do_test(self, context):
         location = context.file
-        context.start()
+        args = self.args
         dataset = xarray.open_dataset(location)
-        var = dataset[self.variable]
-        selection = var.isel(time=self.time_slot)
+        context.start()
+        var = dataset[args['variable']]
+        selection = var.isel(time=int(args.time))
         mean = selection.mean()
-        logging.debug("(%s) Mean at time index %d: %.2f", location, self.time_slot, mean)
+        logging.debug("(%s) Mean at time index %d: %.2f", location, int(args.time), mean)
         context.end()

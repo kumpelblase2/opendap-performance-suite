@@ -6,6 +6,17 @@ import time
 from backend import setup_backend, datapath_for_backend, append_backend_performance
 from testsuite import run_tests, store_results
 
+class StoreDictKeyPair(argparse.Action):
+     def __init__(self, option_strings, dest, nargs=None, **kwargs):
+         self._nargs = nargs
+         super(StoreDictKeyPair, self).__init__(option_strings, dest, nargs=nargs, **kwargs)
+     def __call__(self, parser, namespace, values, option_string=None):
+         my_dict = {}
+         for kv in values:
+             k,v = kv.split("=")
+             my_dict[k] = v
+         setattr(namespace, self.dest, my_dict)
+
 AVAILABLE_BACKENDS = ['thredds', 'hyrax', 'dars']
 AVAILABLE_TESTS = {
     'dataset-access': 'Simple accessing test',
@@ -18,7 +29,8 @@ SCRIPT_LOCATION = os.path.dirname(os.path.realpath(__file__))
 parser = argparse.ArgumentParser(description='Test runner for performance evaluation')
 parser.add_argument('file', metavar='DATASET_LIST_FILE', type=argparse.FileType('r'),
                     help='The file containing a list of files to run the test on')
-parser.add_argument('tests', metavar='TEST', type=str, nargs='*', default=['ALL'], help='The name of the tests to run')
+parser.add_argument('tests', metavar='TEST', type=str, default=['ALL'], help='The name of the tests to run')
+parser.add_argument('test_args', metavar='ARGS', nargs='*', default='', action=StoreDictKeyPair, help='Arguments for the tests')
 parser.add_argument('--backend-base', '-H', type=str, default=None, help='The base URL for accessing the data')
 parser.add_argument('--backend', '-b', type=str, help='Start the given backend service', default=None)
 parser.add_argument('--reruns', '-r', type=int, default=3, help='Amount of reruns of each test to take')
@@ -34,7 +46,7 @@ level = logging.DEBUG if args.verbose else logging.INFO
 logging.basicConfig(format='[%(levelname)s] %(asctime)s - %(message)s', datefmt='%Y/%m/%d-%H:%M:%S', level=level)
 
 backend = args.backend
-tests = args.tests
+tests = args.tests.split(',')
 if len(tests) == 1 and tests[0] == 'ALL':
     tests = list(AVAILABLE_TESTS.keys())
 
@@ -58,8 +70,8 @@ with args.file as dataset_list_file:
 logging.info('Loaded %d datasets to be used for tests.', len(files))
 
 logging.info("Running tests '%s' against '%s'...", ', '.join(tests), backend_base)
-result_runs = run_tests(tests, files, args.reruns)
-metadata = [','.join(tests)]
+result_runs = run_tests(tests, files, args.reruns, args.test_args)
+metadata = [args.tests, args.test_args]
 if backend:
     metadata += [backend]
 
