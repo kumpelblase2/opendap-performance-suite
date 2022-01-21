@@ -71,7 +71,8 @@ logging.info('Loaded %d datasets to be used for tests.', len(files))
 
 logging.info("Running tests '%s' against '%s'...", ', '.join(tests), backend_base)
 result_runs = run_tests(tests, files, args.reruns, args.test_args)
-metadata = [args.tests, args.test_args]
+raw_args = [f'{item}={value}' for item, value in args.test_args.items()]
+metadata = [args.tests, ','.join(raw_args)]
 if backend:
     metadata += [backend]
 
