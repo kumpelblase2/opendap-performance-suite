@@ -3,6 +3,7 @@ import os
 import subprocess
 import logging
 import time
+import shutil
 
 SCRIPT_LOCATION = os.path.dirname(os.path.realpath(__file__))
 
@@ -94,14 +95,5 @@ def setup_backend(backend, tests, warmup_time=10):
     return container_info
 
 
-def append_backend_performance(file, backend):
-    lines = []
-    with open(f'tests/{backend}/measurement-output/output.csv') as perf:
-        lines = perf.readlines()
-        lines = [line.rstrip() for line in lines]
-
-    with open(file.name, 'a') as output:
-        output.write('\n')
-        for line in lines:
-            output.write(line)
-            output.write('\n')
+def append_backend_performance(output_dir, backend):
+    shutil.copyfile(f'tests/{backend}/measurement-output/output.csv', os.path.join(output_dir, 'monitor.csv'))

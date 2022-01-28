@@ -1,5 +1,6 @@
 import logging
 import time
+import os
 
 import scripts.simple
 import scripts.mean_time
@@ -27,8 +28,8 @@ def run_tests(tests, files, reruns=3, args={}):
     return results
 
 
-def store_results(results, output_file, metadata=[]):
-    with output_file as f:
+def store_results(results, output_dir, metadata=[]):
+    with open(os.path.join(output_dir, 'timings.csv'), 'w+') as f:
         f.write('#' + ' - '.join(metadata) + '\n')
         f.write(';'.join(['Test', 'Dataset', 'Step', 'Run', 'Time', 'Start', 'End']) + '\n')
         for test in results.keys():

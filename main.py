@@ -36,14 +36,23 @@ parser.add_argument('--backend', '-b', type=str, help='Start the given backend s
 parser.add_argument('--reruns', '-r', type=int, default=3, help='Amount of reruns of each test to take')
 parser.add_argument('--backend-warmup', '-w', type=int, default=10,
                     help='Warmup time (in seconds) for the started backend to settle down')
-parser.add_argument('--output', '-o', type=argparse.FileType('w'), default=f'results-{str(int(time.time()))}.csv',
-                    help='File to write recorded data to')
+parser.add_argument('--output', '-o', type=str, default=f'./results/{str(int(time.time()))}',
+                    help='Directory to save results to')
 parser.add_argument('--verbose', '-v', default=False, help='Enable verbose output', action='store_true')
 
 args = parser.parse_args()
 
 level = logging.DEBUG if args.verbose else logging.INFO
 logging.basicConfig(format='[%(levelname)s] %(asctime)s - %(message)s', datefmt='%Y/%m/%d-%H:%M:%S', level=level)
+
+if os.path.exists(args.output) and os.path.isfile(args.output):
+    logging.error("Output target exists and is a file. Please specify another output.")
+    exit(1)
+elif os.path.exists(args.output) and os.path.isdir(args.output):
+    if len(os.listdir(args.output)):
+        logging.warn("Output directory already contains files so this may overwrite them.")
+else:
+    os.makedirs(args.output)
 
 backend = args.backend
 tests = args.tests.split(',')
@@ -79,4 +88,4 @@ if backend:
 store_results(result_runs, args.output, metadata=metadata)
 if backend:
     append_backend_performance(args.output, backend)
-logging.info("Written results to %s.", args.output.name)
+logging.info("Written results to %s.", args.output)
