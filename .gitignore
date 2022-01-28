@@ -1,3 +1,4 @@
 *.profile
 *.csv
+/results
 /tests/*/influxdb2
