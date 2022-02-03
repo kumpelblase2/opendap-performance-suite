@@ -1,3 +1,4 @@
+from dask.distributed import Client
 from abc import abstractmethod
 import time
 
@@ -53,8 +54,15 @@ class Test:
         self.args = self.default_args | args
         for file in files:
             context.update_file(file)
+            if self.args['dask'] == '1':
+                c = Client('localhost:8786')
+
             for i in range(reruns):
                 self.do_test(context)
                 context.finish_run()
+            
+            if self.args['dask'] == '1':
+                c.close()
+
             context.finish_file()
         return context.file_data
