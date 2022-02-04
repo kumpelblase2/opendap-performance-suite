@@ -3,7 +3,7 @@ import os
 import logging
 import time
 
-from backend import setup_backend, datapath_for_backend, append_backend_performance
+from backend import setup_backend, datapath_for_backend, append_backend_performance, get_storage_location
 from testsuite import run_tests, store_results
 
 class StoreDictKeyPair(argparse.Action):
@@ -84,7 +84,7 @@ result_runs = run_tests(tests, files, args.reruns, args.test_args)
 raw_args = [f'{item}={value}' for item, value in args.test_args.items()]
 metadata = [args.tests, ','.join(raw_args)]
 if backend:
-    metadata += [backend, args.backend_config]
+    metadata += [backend, args.backend_config, get_storage_location()]
 
 store_results(result_runs, args.output, metadata=metadata)
 if backend:

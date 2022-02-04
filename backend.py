@@ -97,3 +97,9 @@ def setup_backend(backend, tests, config='default', warmup_time=10):
 
 def append_backend_performance(output_dir, backend):
     shutil.copyfile(f'tests/{backend}/measurement-output/output.csv', os.path.join(output_dir, 'monitor.csv'))
+
+
+def get_storage_location():
+    proc = subprocess.run(['docker', 'volume', 'inspect', '--format=\'{{ .Options.device }}\'', 'data_files'], capture_output=True, check=True)
+    output = proc.stdout.decode('utf-8')
+    return output.strip()
