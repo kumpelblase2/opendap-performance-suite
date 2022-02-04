@@ -9,17 +9,19 @@ class MeanAreaTest(scripts.test.Test):
         return {
             'variable': 'tp',
             'time': '10',
+            'dask': '0'
         }
 
     def do_test(self, context):
         location = context.file
         args = self.args
+        time = int(args['time'])
         if args['dask'] == '1':
             logging.info('Dask is enabled, but it will not be used on mean-area.')
         dataset = xarray.open_dataset(location)
         context.start()
         var = dataset[args['variable']]
-        selection = var.isel(time=int(args.time))
+        selection = var.isel(time=time)
         mean = selection.mean()
-        logging.debug("(%s) Mean at time index %d: %.2f", location, int(args.time), mean)
+        logging.debug("(%s) Mean at time index %d: %.2f", location, time, mean)
         context.end()
