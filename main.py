@@ -33,6 +33,7 @@ parser.add_argument('tests', metavar='TEST', type=str, default=['ALL'], help='Th
 parser.add_argument('test_args', metavar='ARGS', nargs='*', default='', action=StoreDictKeyPair, help='Arguments for the tests')
 parser.add_argument('--backend-base', '-H', type=str, default=None, help='The base URL for accessing the data')
 parser.add_argument('--backend', '-b', type=str, help='Start the given backend service', default=None)
+parser.add_argument('--backend-config', '-c', type=str, help='The configuration used for the backend', default='default')
 parser.add_argument('--reruns', '-r', type=int, default=3, help='Amount of reruns of each test to take')
 parser.add_argument('--backend-warmup', '-w', type=int, default=10,
                     help='Warmup time (in seconds) for the started backend to settle down')
@@ -66,7 +67,7 @@ for test in tests:
 
 backend_base = args.backend_base
 if backend:
-    container_info = setup_backend(backend, tests, args.backend_warmup)
+    container_info = setup_backend(backend, tests, args.backend_config, args.backend_warmup)
     if backend_base is None:
         backend_base = f"http://localhost:{container_info['port']}/{datapath_for_backend(backend)}"
         logging.debug("Backend base URL is set to %s", backend_base)
@@ -83,7 +84,7 @@ result_runs = run_tests(tests, files, args.reruns, args.test_args)
 raw_args = [f'{item}={value}' for item, value in args.test_args.items()]
 metadata = [args.tests, ','.join(raw_args)]
 if backend:
-    metadata += [backend]
+    metadata += [backend, args.backend_config]
 
 store_results(result_runs, args.output, metadata=metadata)
 if backend:

@@ -5,7 +5,7 @@ volumes:
     external: true
 
 services:
-  default-influx:
+  v5.3-influx:
     image: influxdb:latest
     volumes:
       - ./measurement-output:/mnt/influx-data
@@ -16,15 +16,19 @@ services:
       - DOCKER_INFLUXDB_INIT_ORG=telegraf
       - DOCKER_INFLUXDB_INIT_ADMIN_TOKEN=telegraf
       - DOCKER_INFLUXDB_INIT_BUCKET=telegraf
-  default-backend:
-    build: ./
+  v5.3-backend:
+    build:
+      context: .
+      dockerfile: Dockerfile-v5.3
     depends_on:
-      - hyrax-influx
+      - v5.3-influx
     links:
-      - hyrax-influx
+      - v5.3-influx
     ports:
       - "8080"
     volumes:
-      - data_files:/usr/share/hyrax/testAll/:ro
+      - ./content/catalog.xml:/usr/local/tomcat/content/thredds/catalog.xml:ro
+      - ./content/threddsConfig.xml:/usr/local/tomcat/content/thredds/threddsConfig.xml:ro
+      - data_files:/media/data:ro
     env_file:
-      - "hyrax-default.env"
+      - "thredds-default.env"

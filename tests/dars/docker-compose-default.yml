@@ -5,7 +5,7 @@ volumes:
     external: true
 
 services:
-  dars-influx:
+  default-influx:
     image: influxdb:latest
     volumes:
       - ./measurement-output:/mnt/influx-data
@@ -16,7 +16,7 @@ services:
       - DOCKER_INFLUXDB_INIT_ORG=telegraf
       - DOCKER_INFLUXDB_INIT_ADMIN_TOKEN=telegraf
       - DOCKER_INFLUXDB_INIT_BUCKET=telegraf
-  dars-backend:
+  default-backend:
     build: ./
     depends_on:
       - dars-influx

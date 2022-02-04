@@ -39,18 +39,18 @@ def is_container_healthy(container):
     return output.strip().strip("'").strip('"') == 'healthy'
 
 
-def startup_backend(backend):
-    logging.info("Starting %s backend... (This may take a while on first start)", backend)
+def startup_backend(backend, config):
+    logging.info("Starting %s backend (config: %s)... (This may take a while on first start)", backend, config)
     try:
         subprocess.run(
-            ['docker-compose', '-f', f'{SCRIPT_LOCATION}/tests/{backend}/docker-compose-default.yml', 'up', '-d'],
+            ['docker-compose', '-f', f'{SCRIPT_LOCATION}/tests/{backend}/docker-compose-{config}.yml', 'up', '-d'],
             capture_output=True, check=True)
     except subprocess.CalledProcessError as e:
         error_text = e.stderr.decode('utf-8').strip()
         logging.error("Could not start backend. Exit code: %d, Error: %s", e.returncode, error_text)
         exit(1)
     internal_port = BACKEND_PORTS[backend]
-    container_name = backend + '-' + backend + '-backend-1'
+    container_name = backend + '-' + config + '-backend-1'
     try:
         format_ = '{{(index (index .NetworkSettings.Ports "' + str(internal_port) + '/tcp") 0).HostPort}}'
         proc = subprocess.run(['docker', 'inspect', f'--format=\'{format_}\'', container_name], capture_output=True, check=True)
@@ -75,17 +75,17 @@ def wait_backend(container):
             time.sleep(1)
 
 
-def shutdown_backend(backend, _tests):
+def shutdown_backend(backend, config, _tests):
     logging.info("Shutting down backend...")
-    subprocess.run(['docker-compose', '-f', f'{SCRIPT_LOCATION}/tests/{backend}/docker-compose-default.yml', 'exec', backend + '-influx', 'bash', '-c', f'influx query --token telegraf --org telegraf -r \'{query}\' > /mnt/influx-data/output.csv'], check=True)
-    subprocess.run(['docker-compose', '-f', f'{SCRIPT_LOCATION}/tests/{backend}/docker-compose-default.yml', 'exec', backend + '-influx', '/bin/chown', '1000:1000', '/mnt/influx-data/output.csv'], check=True)
-    subprocess.run(['docker-compose', '-f', f'{SCRIPT_LOCATION}/tests/{backend}/docker-compose-default.yml', 'down'],
+    subprocess.run(['docker-compose', '-f', f'{SCRIPT_LOCATION}/tests/{backend}/docker-compose-{config}.yml', 'exec', config + '-influx', 'bash', '-c', f'influx query --token telegraf --org telegraf -r \'{query}\' > /mnt/influx-data/output.csv'], check=True)
+    subprocess.run(['docker-compose', '-f', f'{SCRIPT_LOCATION}/tests/{backend}/docker-compose-{config}.yml', 'exec', config + '-influx', '/bin/chown', '1000:1000', '/mnt/influx-data/output.csv'], check=True)
+    subprocess.run(['docker-compose', '-f', f'{SCRIPT_LOCATION}/tests/{backend}/docker-compose-{config}.yml', 'down'],
                    check=True, capture_output=True)
 
 
-def setup_backend(backend, tests, warmup_time=10):
-    atexit.register(shutdown_backend, backend, tests)
-    container_info = startup_backend(backend)
+def setup_backend(backend, tests, config='default', warmup_time=10):
+    atexit.register(shutdown_backend, backend, config, tests)
+    container_info = startup_backend(backend, config)
     if backend == 'thredds':
         wait_backend(container_info['container'])
     logging.info("Backend ready.")
