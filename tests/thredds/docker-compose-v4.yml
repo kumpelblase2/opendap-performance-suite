@@ -31,4 +31,4 @@ services:
       - ./content/threddsConfig.xml:/usr/local/tomcat/content/thredds/threddsConfig.xml:ro
       - data_files:/media/data:ro
     env_file:
-      - "thredds-default.env"
+      - "thredds-v4.env"

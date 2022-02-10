@@ -5,7 +5,7 @@ volumes:
     external: true
 
 services:
-  thredds-influx:
+  default-influx:
     image: influxdb:latest
     volumes:
       - ./measurement-output:/mnt/influx-data
@@ -16,12 +16,12 @@ services:
       - DOCKER_INFLUXDB_INIT_ORG=telegraf
       - DOCKER_INFLUXDB_INIT_ADMIN_TOKEN=telegraf
       - DOCKER_INFLUXDB_INIT_BUCKET=telegraf
-  thredds-backend:
+  default-backend:
     build: ./
     depends_on:
-      - thredds-influx
+      - default-influx
     links:
-      - thredds-influx
+      - default-influx
     ports:
       - "8080"
     volumes:
