@@ -28,5 +28,9 @@ services:
       - ./content/catalog.xml:/usr/local/tomcat/content/thredds/catalog.xml:ro
       - ./content/threddsConfig.xml:/usr/local/tomcat/content/thredds/threddsConfig.xml:ro
       - data_files:/media/data:ro
-    env_file:
-      - "thredds-double-ram.env"
+    environment:
+      - THREDDS_XMX_SIZE=8G
+      - THREDDS_XMS_SIZE=8G
+      - TDM_XMX_SIZE=12G
+      - TDM_XMS_SIZE=2G
+      - INFLUX_HOST=double-ram-influx

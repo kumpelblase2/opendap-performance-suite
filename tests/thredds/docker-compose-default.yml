@@ -27,5 +27,9 @@ services:
     volumes:
       - ./content/catalog.xml:/usr/local/tomcat/content/thredds/catalog.xml:ro
       - data_files:/media/data:ro
-    env_file:
-      - "thredds-default.env"
+    environment:
+      - THREDDS_XMX_SIZE=4G
+      - THREDDS_XMS_SIZE=4G
+      - TDM_XMX_SIZE=6G
+      - TDM_XMS_SIZE=1G
+      - INFLUX_HOST=default-influx
