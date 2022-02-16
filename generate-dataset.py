@@ -23,16 +23,21 @@ def generate_file(args, index, rng, seed):
         print(f"Generating file {index}...")
     grid = generate_grid(args, index)
     vars = [generate_var(grid, rng) for i in range(0, args.vars)]
+    if len(grid) == 3:
+        coords = {
+            'time': ('time', grid[0]),
+            'longitude': ('longitude', grid[1]),
+            'latitude': ('latitude', grid[2]),
+        }
+    else:
+        coords = {
+            'time': ('time', grid[0]),
+            'ncells': ('ncells', grid[1])
+        }
+
     var_dict = {}
     for i, var in enumerate(vars):
-        var_dict[f"var_{i}"] = (["time", "longitude", "latitude"], var)
-    
-    coords = {
-        'longitude': ('longitude', grid[1]),
-        'latitude': ('latitude', grid[2]),
-        'time': ('time', grid[0])
-    }
-    
+        var_dict[f"var_{i}"] = (coords.keys(), var)
 
     chunking = parse_chunking(args.chunking) if args.chunking is not None else None
     encoding = {}
@@ -79,7 +84,17 @@ def generate_grid(args, index):
             return [time, longitude, latitude]
 
     else:
-        pass
+        if args.split == 'time':
+            cells = args.unstructured
+            time = generate_time_slice(args.time_values, args.split_count)
+            cells = numpy.arange(cells)
+            return [time, cells]
+        elif args.split == 'area':
+            cells_per_file = args.unstructured / args.split_count
+            time = numpy.arange(args.time_values)
+            cells = numpy.arange(index * cells_per_file, (index + 1) * cells_per_file)
+            return [time, cells]
+
 
 def generate_time_slice(values, splits):
     time_per_file = int(values / splits)
@@ -111,8 +126,12 @@ def get_area_size(count):
     return [x, y]
 
 def generate_var(grid, rng):
-    [time, longitude, latitude] = grid
-    return rng.random((len(time), len(longitude), len(latitude)))
+    if len(grid) == 3:
+        [time, longitude, latitude] = grid
+        return rng.random((len(time), len(longitude), len(latitude)))
+    else:
+        [time, ncells] = grid
+        return rng.random((len(time), len(ncells)))
 
 def parse_chunking(string):
     var_chunks = string.split(',')
