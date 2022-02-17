@@ -1,8 +1,10 @@
 import xarray
 import numpy
 import argparse
+import re
 
 SPLIT_OPTIONS=['time', 'area']
+DISTRIBUTION_REGEX = re.compile('(\w+)(\(([0-9\.]+(, ?[0-9\.])*)\))?')
 
 parser = argparse.ArgumentParser(description='Generate synthetic datasets for testing')
 
@@ -16,14 +18,15 @@ parser.add_argument('--split-count', '-f', type=int, default=1, help='Amount of 
 parser.add_argument('--chunking', '-c', type=str, help='Chunking in the format "<var>=<size>,<var>=<size>,..."')
 parser.add_argument('--compression', '-C', type=int, help='Compression level for variables')
 parser.add_argument('--rng-seed', '-r', type=int, help='Seed for randomizer')
+parser.add_argument('--distribution', '-d', type=str, help='Which distribution model to use for random variables')
 parser.add_argument('--netcdf3', '-3', default=False, action='store_true', help='Output a NetCDF3 file')
 parser.add_argument('--verbose', '-v', default=False, action='store_true')
 
-def generate_file(args, index, rng, seed):
+def generate_file(args, index, rng_func, extra_attributes):
     if args.verbose:
         print(f"Generating file {index}...")
     grid = generate_grid(args, index)
-    vars = [generate_var(grid, rng) for i in range(0, args.vars)]
+    vars = [generate_var(grid, rng_func) for i in range(0, args.vars)]
     if len(grid) == 3:
         coords = {
             'time': ('time', grid[0]),
@@ -55,7 +58,7 @@ def generate_file(args, index, rng, seed):
             encoding[var_name] = encode_vars
         
 
-    ds = xarray.Dataset(data_vars=var_dict, coords=coords, attrs=dict(seed=seed))
+    ds = xarray.Dataset(data_vars=var_dict, coords=coords, attrs=extra_attributes)
     kwargs = {}
     if args.netcdf3:
         kwargs['format'] = 'NETCDF3_CLASSIC'
@@ -129,19 +132,42 @@ def get_area_size(count):
             which = 'x'
     return [x, y]
 
-def generate_var(grid, rng):
+def generate_var(grid, rng_func):
     if len(grid) == 3:
         [time, longitude, latitude] = grid
-        return rng.random((len(time), len(longitude), len(latitude)))
+        return rng_func((len(time), len(longitude), len(latitude)))
     else:
         [time, ncells] = grid
-        return rng.random((len(time), len(ncells)))
+        return rng_func((len(time), len(ncells)))
 
 def parse_chunking(string):
     var_chunks = string.split(',')
     key_value_arrays = [var.split('=') for var in var_chunks]
     chunking = {key_value[0]: key_value[1] for key_value in key_value_arrays}
     return (int(chunking['time']), int(chunking['longitude']), int(chunking['latitude']))
+
+def parse_distribution(dist):
+    matched = DISTRIBUTION_REGEX.match(dist)
+    if matched:
+        name = matched.group(1)
+        args = matched.group(3)
+        if args:
+            args = [float(value) for value in args.split(',')]
+        else:
+            args = []
+        
+        return [name, args]        
+    else:
+        print("Could not evaluate distribution")
+        exit(1)
+
+def get_random_func(rng, args):
+    if args.distribution is not None:
+        [dist, args] = parse_distribution(args.distribution)
+        func = getattr(rng, dist)
+        return lambda x: func(*args, x)
+
+    return rng.random
 
 args = parser.parse_args()
 
@@ -154,9 +180,10 @@ if args.rng_seed is not None:
     seed = args.rng_seed
 
 rng = numpy.random.default_rng(seed)
+rng_func = get_random_func(rng, args)
 
 if args.verbose:
     print(f"Creating {args.split_count} files...")
 
 for i in range(0, args.split_count):
-    generate_file(args, i, rng, seed)
+    generate_file(args, i, rng_func, {'seed': seed, 'distribution': args.distribution or 'sample(0,1)'})
