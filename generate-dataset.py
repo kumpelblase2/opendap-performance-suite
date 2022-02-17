@@ -16,6 +16,7 @@ parser.add_argument('--split-count', '-f', type=int, default=1, help='Amount of 
 parser.add_argument('--chunking', '-c', type=str, help='Chunking in the format "<var>=<size>,<var>=<size>,..."')
 parser.add_argument('--compression', '-C', type=int, help='Compression level for variables')
 parser.add_argument('--rng-seed', '-r', type=int, help='Seed for randomizer')
+parser.add_argument('--netcdf3', '-3', default=False, action='store_true', help='Output a NetCDF3 file')
 parser.add_argument('--verbose', '-v', default=False, action='store_true')
 
 def generate_file(args, index, rng, seed):
@@ -56,6 +57,9 @@ def generate_file(args, index, rng, seed):
 
     ds = xarray.Dataset(data_vars=var_dict, coords=coords, attrs=dict(seed=seed))
     kwargs = {}
+    if args.netcdf3:
+        kwargs['format'] = 'NETCDF3_CLASSIC'
+
     if len(encoding.keys()) > 0:
         kwargs['encoding'] = encoding
     
@@ -67,7 +71,7 @@ def generate_file(args, index, rng, seed):
     ds.to_netcdf(f"{args.file}_{index}.nc", **kwargs)
 
 def generate_grid(args, index):
-    if args.grid != None:
+    if args.grid is not None:
         resolution = args.grid
         if args.split == 'time':
             longitude = numpy.arange(0, 360, resolution)
@@ -146,7 +150,7 @@ if args.grid == None and args.unstructured == None:
     exit(1)
 
 seed = int(numpy.random.rand() * 10000000)
-if args.rng_seed != None:
+if args.rng_seed is not None:
     seed = args.rng_seed
 
 rng = numpy.random.default_rng(seed)
