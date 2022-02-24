@@ -6,9 +6,9 @@ import re
 SPLIT_OPTIONS=['time', 'area']
 DISTRIBUTION_REGEX = re.compile('(\w+)(\(([0-9\.]+(, ?[0-9\.])*)\))?')
 
-parser = argparse.ArgumentParser(description='Generate synthetic datasets for testing')
+parser = argparse.ArgumentParser(description='Generate synthetic datasets for testing with 2 (unstructured) or 3 (grid) dimensions with one or more variables.')
 
-parser.add_argument('file', metavar='OUTPUT', type=str, help='The file to write the output to')
+parser.add_argument('file', metavar='OUTPUT', type=str, help='The name of the file to write the output to. When multiple files will generated, the files will be called "<name>_0", "<name>_1", etc.')
 parser.add_argument('--time-values', '-t', type=int, default=365, help='How many time entries')
 parser.add_argument('--vars', '-V', type=int, default=1, help='Amount of variables to create')
 parser.add_argument('--grid', '-g', type=float, help='Use a normal grid with the given resolution')
@@ -18,8 +18,8 @@ parser.add_argument('--split-count', '-f', type=int, default=1, help='Amount of 
 parser.add_argument('--chunking', '-c', type=str, help='Chunking in the format "<var>=<size>,<var>=<size>,..."')
 parser.add_argument('--compression', '-C', type=int, help='Compression level for variables')
 parser.add_argument('--rng-seed', '-r', type=int, help='Seed for randomizer')
-parser.add_argument('--distribution', '-d', type=str, help='Which distribution model to use for random variables')
-parser.add_argument('--netcdf3', '-3', default=False, action='store_true', help='Output a NetCDF3 file')
+parser.add_argument('--distribution', '-d', type=str, help='Which distribution model to use for random variables. Format is "<distribution>(<arg1>, <arg2>,...)"')
+parser.add_argument('--netcdf3', '-3', default=False, action='store_true', help='Output a NetCDF3 file instead of a NetCDF4')
 parser.add_argument('--verbose', '-v', default=False, action='store_true')
 
 def generate_file(args, index, rng_func, extra_attributes):
