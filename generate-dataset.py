@@ -82,7 +82,7 @@ def generate_grid(args, index):
             time = generate_time_slice(args.time_values, args.split_count)
             return [time, longitude, latitude]
         elif args.split == 'area':
-            time = numpy.arange(args.time_values)
+            time = numpy.arange(args.time_values, dtype=numpy.int32)
             if args.split_count % 2 != 1:
                 print("Split count needs to be a multiple of two when using area")
                 exit(1)
@@ -98,14 +98,14 @@ def generate_grid(args, index):
             return [time, cells]
         elif args.split == 'area':
             cells_per_file = args.unstructured / args.split_count
-            time = numpy.arange(args.time_values)
+            time = numpy.arange(args.time_values, dtype=numpy.int32)
             cells = numpy.arange(index * cells_per_file, (index + 1) * cells_per_file)
             return [time, cells]
 
 
 def generate_time_slice(values, splits):
     time_per_file = int(values / splits)
-    return numpy.arange(i * time_per_file, (i + 1) * time_per_file)
+    return numpy.arange(i * time_per_file, (i + 1) * time_per_file, dtype=numpy.int32)
 
 def generate_area(resolution, splits, index):
     [subarea_x, subarea_y] = get_area_size(splits)
