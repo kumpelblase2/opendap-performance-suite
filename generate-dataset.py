@@ -4,7 +4,7 @@ import argparse
 import re
 
 SPLIT_OPTIONS=['time', 'area']
-DISTRIBUTION_REGEX = re.compile('(\w+)(\(([0-9\.]+(, ?[0-9\.])*)\))?')
+DISTRIBUTION_REGEX = re.compile('(\w+)(\(([0-9\.\-]+(, ?[0-9\.\-])*)\))?')
 
 parser = argparse.ArgumentParser(description='Generate synthetic datasets for testing with 2 (unstructured) or 3 (grid) dimensions with one or more variables.')
 
