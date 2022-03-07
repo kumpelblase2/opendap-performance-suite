@@ -20,6 +20,7 @@ parser.add_argument('--compression', '-C', type=int, help='Compression level for
 parser.add_argument('--rng-seed', '-r', type=int, help='Seed for randomizer')
 parser.add_argument('--distribution', '-d', type=str, help='Which distribution model to use for random variables. Format is "<distribution>(<arg1>, <arg2>,...)"')
 parser.add_argument('--netcdf3', '-3', default=False, action='store_true', help='Output a NetCDF3 file instead of a NetCDF4')
+parser.add_argument('--height', '-H', type=int, default=None, help='Add a fourth dimension - height - with the given amount of entries')
 parser.add_argument('--verbose', '-v', default=False, action='store_true')
 
 def generate_file(args, index, rng_func, extra_attributes):
@@ -27,23 +28,30 @@ def generate_file(args, index, rng_func, extra_attributes):
         print(f"Generating file {index}...")
     grid = generate_grid(args, index)
     vars = [generate_var(grid, rng_func) for i in range(0, args.vars)]
-    if len(grid) == 3:
+
+    if args.grid is not None:
         coords = {
             'time': ('time', grid[0]),
-            'longitude': ('longitude', grid[1]),
-            'latitude': ('latitude', grid[2]),
+            'longitude': ('longitude', grid[-2]), # Use negative indexing to handle possible height dim
+            'latitude': ('latitude', grid[-1]),
         }
     else:
         coords = {
             'time': ('time', grid[0]),
-            'ncells': ('ncells', grid[1])
+            'ncells': ('ncells', grid[-1])
         }
+
+    dims = list(coords.keys())
+    
+    if args.height is not None:
+        coords['height'] = ('height', grid[1])
+        dims.insert(1, 'height')
 
     var_dict = {}
     for i, var in enumerate(vars):
-        var_dict[f"var_{i}"] = (coords.keys(), var)
+        var_dict[f"var_{i}"] = (dims, var)
 
-    chunking = parse_chunking(args.chunking) if args.chunking is not None else None
+    chunking = parse_chunking(args.chunking, dims) if args.chunking is not None else None
     encoding = {}
     for i in range(0, len(vars)):
         var_name = f'var_{i}'
@@ -80,6 +88,10 @@ def generate_grid(args, index):
             longitude = numpy.arange(0, 360, resolution)
             latitude = numpy.arange(-90, 90, resolution)
             time = generate_time_slice(args.time_values, args.split_count)
+            if args.height is not None:
+                height = numpy.arange(0, args.height)
+                return [time, height, longitude, latitude]
+
             return [time, longitude, latitude]
         elif args.split == 'area':
             time = numpy.arange(args.time_values, dtype=numpy.int32)
@@ -88,6 +100,10 @@ def generate_grid(args, index):
                 exit(1)
             
             [longitude, latitude] = generate_area(resolution, args.split_count, index)
+            if args.height is not None:
+                height = numpy.arange(0, args.height)
+                return [time, height, longitude, latitude]
+
             return [time, longitude, latitude]
 
     else:
@@ -95,11 +111,17 @@ def generate_grid(args, index):
             cells = args.unstructured
             time = generate_time_slice(args.time_values, args.split_count)
             cells = numpy.arange(cells)
+            if args.height is not None:
+                height = numpy.arange(0, args.height)
+                return [time, height, cells]
             return [time, cells]
         elif args.split == 'area':
             cells_per_file = args.unstructured / args.split_count
             time = numpy.arange(args.time_values, dtype=numpy.int32)
             cells = numpy.arange(index * cells_per_file, (index + 1) * cells_per_file)
+            if args.height is not None:
+                height = numpy.arange(0, args.height)
+                return [time, height, cells]
             return [time, cells]
 
 
@@ -133,18 +155,13 @@ def get_area_size(count):
     return [x, y]
 
 def generate_var(grid, rng_func):
-    if len(grid) == 3:
-        [time, longitude, latitude] = grid
-        return rng_func((len(time), len(longitude), len(latitude)))
-    else:
-        [time, ncells] = grid
-        return rng_func((len(time), len(ncells)))
+    return rng_func(tuple(map(lambda dim: len(dim), grid)))
 
-def parse_chunking(string):
+def parse_chunking(string, dims):
     var_chunks = string.split(',')
     key_value_arrays = [var.split('=') for var in var_chunks]
     chunking = {key_value[0]: key_value[1] for key_value in key_value_arrays}
-    return (int(chunking['time']), int(chunking['longitude']), int(chunking['latitude']))
+    return tuple(map(lambda dim: int(chunking[dim]), dims))
 
 def parse_distribution(dist):
     matched = DISTRIBUTION_REGEX.match(dist)
