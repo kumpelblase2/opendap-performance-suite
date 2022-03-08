@@ -21,6 +21,7 @@ parser.add_argument('--rng-seed', '-r', type=int, help='Seed for randomizer')
 parser.add_argument('--distribution', '-d', type=str, help='Which distribution model to use for random variables. Format is "<distribution>(<arg1>, <arg2>,...)"')
 parser.add_argument('--netcdf3', '-3', default=False, action='store_true', help='Output a NetCDF3 file instead of a NetCDF4')
 parser.add_argument('--height', '-H', type=int, default=None, help='Add a fourth dimension - height - with the given amount of entries')
+parser.add_argument('--zarr', '-z', default=False, action='store_true', help='Output a zarr store')
 parser.add_argument('--verbose', '-v', default=False, action='store_true')
 
 def generate_file(args, index, rng_func, extra_attributes):
@@ -74,12 +75,20 @@ def generate_file(args, index, rng_func, extra_attributes):
     if len(encoding.keys()) > 0:
         kwargs['encoding'] = encoding
     
-    if args.split == 'time':
-        kwargs['unlimited_dims'] = ['time']
-    elif args.grid is not None:
-        kwargs['unlimited_dims'] = ['longitude', 'latitude']
+    if not args.zarr:
+        if args.split == 'time':
+            kwargs['unlimited_dims'] = ['time']
+        elif args.grid is not None:
+            kwargs['unlimited_dims'] = ['longitude', 'latitude']
     
-    ds.to_netcdf(f"{args.file}_{index}.nc", **kwargs)
+    if args.verbose:
+        print(f"Encoding set to {kwargs}")
+    
+    if args.zarr:
+        kwargs = convert_to_zarr_args(args, kwargs)
+        ds.to_zarr(**kwargs)
+    else:
+        ds.to_netcdf(f"{args.file}_{index}.nc", **kwargs)
 
 def generate_grid(args, index):
     if args.grid is not None:
@@ -186,10 +195,37 @@ def get_random_func(rng, args):
 
     return rng.random
 
+def convert_to_zarr_args(args, kwargs):
+    import zarr
+    new_args = {
+        'store': f"{args.file}.zarr"
+    }
+
+    if kwargs['encoding'] is not None:
+        new_encoding = {}
+        for dim in kwargs['encoding'].keys():
+            new_dim_encoding = {}
+            encoding = kwargs['encoding'][dim]
+            if encoding['chunksizes'] is not None:
+                new_dim_encoding['chunks'] = encoding['chunksizes']
+            
+            if encoding['complevel'] is not None:
+                new_dim_encoding['compressor'] = zarr.Blosc(cname='zstd', clevel=encoding['complevel'], shuffle=2)
+            
+            new_encoding[dim] = new_dim_encoding
+        new_args['encoding'] = new_encoding
+    
+    new_args['safe_chunks'] = False
+    return new_args
+
 args = parser.parse_args()
 
 if args.grid == None and args.unstructured == None:
     print("Either specify a grid or unstructured.")
+    exit(1)
+
+if args.zarr and args.netcdf3:
+    print("Please specify just one output format.")
     exit(1)
 
 seed = int(numpy.random.rand() * 10000000)
@@ -199,8 +235,15 @@ if args.rng_seed is not None:
 rng = numpy.random.default_rng(seed)
 rng_func = get_random_func(rng, args)
 
-if args.verbose:
-    print(f"Creating {args.split_count} files...")
+if args.zarr:
+    if args.split_count > 1:
+        print("Splitting is not supported for zarr stores")
+        exit(1)
 
-for i in range(0, args.split_count):
-    generate_file(args, i, rng_func, {'seed': seed, 'distribution': args.distribution or 'sample(0,1)'})
+    generate_file(args, 0, rng_func, {'seed': seed, 'distribution': args.distribution or 'sample(0,1)'})
+else:
+    if args.verbose:
+        print(f"Creating {args.split_count} files...")
+
+    for i in range(0, args.split_count):
+        generate_file(args, i, rng_func, {'seed': seed, 'distribution': args.distribution or 'sample(0,1)'})
