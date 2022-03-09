@@ -6,7 +6,7 @@ import xarray
 
 class SimpleTest(scripts.test.Test):
     def do_test(self, context):
-        location = context.file
+        location = context.input
         context.start()
         dataset = xarray.open_dataset(location)
         attributes = dataset.attrs

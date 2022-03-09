@@ -17,6 +17,17 @@ class StoreDictKeyPair(argparse.Action):
              my_dict[k] = v
          setattr(namespace, self.dest, my_dict)
 
+def get_dataset_files(args, backend_base):
+    files = []
+    with args.file as dataset_list_file:
+        for dataset_entry in dataset_list_file:
+            line = dataset_entry.strip()
+            if ',' in line:
+                files.append([f'{backend_base}/{entry}' for entry in line.split(',')])
+            else:
+                files.append(f'{backend_base}/{line.strip()}')
+    return files
+
 AVAILABLE_BACKENDS = ['thredds', 'hyrax', 'dars']
 AVAILABLE_TESTS = {
     'dataset-access': 'Simple accessing test',
@@ -72,10 +83,7 @@ if backend:
         backend_base = f"http://localhost:{container_info['port']}/{datapath_for_backend(backend)}"
         logging.debug("Backend base URL is set to %s", backend_base)
 
-files = []
-with args.file as dataset_list_file:
-    for dataset in dataset_list_file:
-        files.append(f'{backend_base}/{dataset.strip()}')
+files = get_dataset_files(args, backend_base)
 
 logging.info('Loaded %d datasets to be used for tests.', len(files))
 

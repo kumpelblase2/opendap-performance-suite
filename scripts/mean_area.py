@@ -14,16 +14,17 @@ class MeanAreaTest(scripts.test.Test):
         }
 
     def do_test(self, context):
-        location = context.file
+        location = context.input
+        dataset = self.open_dataset(context)
         args = self.args
         time = int(args['time'])
-        if args['dask'] == '1':
-            logging.info('Dask is enabled, but it will not be used on mean-area.')
-        dataset = xarray.open_dataset(location)
         selector = {args['time_var']: time}
         context.start()
         var = dataset[args['variable']]
         selection = var.isel(selector)
         mean = selection.mean()
         logging.debug("(%s) Mean at time index %d: %.2f", location, time, mean)
+        if self.is_zarr_archive(context) or self.is_dask_enabled():
+            mean = mean.compute()
+        
         context.end()
