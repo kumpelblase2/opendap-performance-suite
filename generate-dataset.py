@@ -2,6 +2,7 @@ import xarray
 import numpy
 import argparse
 import re
+import datetime
 
 SPLIT_OPTIONS=['time', 'area']
 DISTRIBUTION_REGEX = re.compile('(\w+)(\(([0-9\.\-]+(, ?[0-9\.\-])*)\))?')
@@ -23,6 +24,7 @@ parser.add_argument('--netcdf3', '-3', default=False, action='store_true', help=
 parser.add_argument('--height', '-H', type=int, default=None, help='Add a fourth dimension - height - with the given amount of entries')
 parser.add_argument('--zarr', '-z', default=False, action='store_true', help='Output a zarr store')
 parser.add_argument('--verbose', '-v', default=False, action='store_true')
+parser.add_argument('--datetime', '-D', default=False, action='store_true', help='Use datetime values instead of int for time dimension')
 
 def generate_file(args, index, rng_func, extra_attributes):
     if args.verbose:
@@ -96,14 +98,14 @@ def generate_grid(args, index):
         if args.split == 'time':
             longitude = numpy.arange(0, 360, resolution)
             latitude = numpy.arange(-90, 90, resolution)
-            time = generate_time_slice(args.time_values, args.split_count, index)
+            time = generate_time_dim(args, index)
             if args.height is not None:
                 height = numpy.arange(0, args.height)
                 return [time, height, longitude, latitude]
 
             return [time, longitude, latitude]
         elif args.split == 'area':
-            time = numpy.arange(args.time_values, dtype=numpy.int32)
+            time = generate_time_dim(args, index)
             if args.split_count % 2 != 1:
                 print("Split count needs to be a multiple of two when using area")
                 exit(1)
@@ -118,7 +120,7 @@ def generate_grid(args, index):
     else:
         if args.split == 'time':
             cells = args.unstructured
-            time = generate_time_slice(args.time_values, args.split_count, index)
+            time = generate_time_dim(args, index)
             cells = numpy.arange(cells)
             if args.height is not None:
                 height = numpy.arange(0, args.height)
@@ -126,17 +128,34 @@ def generate_grid(args, index):
             return [time, cells]
         elif args.split == 'area':
             cells_per_file = args.unstructured / args.split_count
-            time = numpy.arange(args.time_values, dtype=numpy.int32)
+            time = generate_time_dim(args, index)
             cells = numpy.arange(index * cells_per_file, (index + 1) * cells_per_file)
             if args.height is not None:
                 height = numpy.arange(0, args.height)
                 return [time, height, cells]
             return [time, cells]
 
+def generate_time_dim(args, index):
+    if args.split == 'time':
+        if args.datetime:
+            return generate_datetime_slice(args.time_values, args.split_count, index)
+        else:
+            return generate_time_slice(args.time_values, args.split_count, index)
+    elif args.split == 'area':
+        if args.datetime:
+            time = generate_datetime_slice(args.time_values, 1, 0)
+        else:
+            time = generate_time_slice(args.time_values, 1, 0)
 
-def generate_time_slice(values, splits, index):
+def generate_datetime_slice(values, splits, index, offset=0):
     time_per_file = int(values / splits)
-    return numpy.arange(index * time_per_file, (index + 1) * time_per_file, dtype=numpy.int32)
+    start = datetime.datetime(2000, 1, 1) + datetime.timedelta(days=offset) + datetime.timedelta(days=index * time_per_file)
+    end = start + datetime.timedelta(days = time_per_file)
+    return numpy.arange(start, end, datetime.timedelta(days=1))
+
+def generate_time_slice(values, splits, index, offset=0):
+    time_per_file = int(values / splits)
+    return numpy.arange(index * time_per_file + offset, (index + 1) * time_per_file + offset, dtype=numpy.int32)
 
 def generate_area(resolution, splits, index):
     [subarea_x, subarea_y] = get_area_size(splits)
