@@ -67,7 +67,10 @@ def generate_file(args, index, rng_func, extra_attributes):
 
         if len(encode_vars.keys()) > 0:
             encoding[var_name] = encode_vars
-        
+
+    if args.datetime:
+        # We need to set this because dap2 does not support int64 types
+        encoding['time'] = { 'dtype': 'float64' }
 
     ds = xarray.Dataset(data_vars=var_dict, coords=coords, attrs=extra_attributes)
     kwargs = {}
