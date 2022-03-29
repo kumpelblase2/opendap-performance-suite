@@ -170,7 +170,11 @@ def parse_chunking(string, dims):
     var_chunks = string.split(',')
     key_value_arrays = [var.split('=') for var in var_chunks]
     chunking = {key_value[0]: key_value[1] for key_value in key_value_arrays}
-    return tuple(map(lambda dim: int(chunking[dim]), dims))
+    try:
+        return tuple(map(lambda dim: int(chunking[dim]), dims))
+    except KeyError as e:
+        print(f"Dimension is not specified in chunk description: {e}")
+        exit(1)
 
 def parse_distribution(dist):
     matched = DISTRIBUTION_REGEX.match(dist)
