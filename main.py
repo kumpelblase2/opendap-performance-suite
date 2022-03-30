@@ -3,7 +3,7 @@ import os
 import logging
 import time
 
-from backend import setup_backend, datapath_for_backend, append_backend_performance, get_storage_location
+from backend import setup_backend, datapath_for_backend, append_backend_performance, get_storage_location, mount_volume, unmount_volume
 from testsuite import run_tests, store_results
 
 class StoreDictKeyPair(argparse.Action):
@@ -50,6 +50,7 @@ parser.add_argument('--backend-warmup', '-w', type=int, default=10,
                     help='Warmup time (in seconds) for the started backend to settle down')
 parser.add_argument('--output', '-o', type=str, default=f'./results/{str(int(time.time()))}',
                     help='Directory to save results to')
+parser.add_argument('--volume', '-V', type=str, default=None, help='Directory with data files to mount')
 parser.add_argument('--verbose', '-v', default=False, help='Enable verbose output', action='store_true')
 
 args = parser.parse_args()
@@ -83,6 +84,10 @@ if backend:
         backend_base = f"http://localhost:{container_info['port']}/{datapath_for_backend(backend)}"
         logging.debug("Backend base URL is set to %s", backend_base)
 
+    if args.volume is not None:
+        logging.debug(f"Mounting volume at {args.volume}")
+        mount_volume(args.volume)
+
 files = get_dataset_files(args, backend_base)
 
 logging.info('Loaded %d datasets to be used for tests.', len(files))
@@ -97,4 +102,7 @@ if backend:
 store_results(result_runs, args.output, metadata=metadata)
 if backend:
     append_backend_performance(args.output, backend)
+    if args.volume is not None:
+        unmount_volume()
+
 logging.info("Written results to %s.", args.output)

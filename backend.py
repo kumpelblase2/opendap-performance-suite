@@ -28,6 +28,11 @@ from(bucket:"telegraf")
 |> keep(columns: ["_time","_value","_field","_measurement", "cpu", "name"])
 """
 
+def mount_volume(path):
+    subprocess.run(['docker', 'volume', 'create', '--name=data_files', '--opt', 'type=none', '--opt', f'device={path}', '--opt', 'o=bind'])
+
+def unmount_volume():
+    subprocess.run(['docker', 'volume', 'rm', 'data_files'])
 
 def datapath_for_backend(backend):
     return BACKEND_RELATIVE_PATHS[backend]
