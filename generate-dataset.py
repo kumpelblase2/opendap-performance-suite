@@ -19,6 +19,7 @@ parser.add_argument('--split-count', '-f', type=int, default=1, help='Amount of 
 parser.add_argument('--chunking', '-c', type=str, help='Chunking in the format "<var>=<size>,<var>=<size>,..."')
 parser.add_argument('--compression', '-C', type=int, help='Compression level for variables')
 parser.add_argument('--rng-seed', '-r', type=int, help='Seed for randomizer')
+parser.add_argument('--no-shuffle', '-S', default=False, action='store_true', help='Disable shuffling when compressing data')
 parser.add_argument('--distribution', '-d', type=str, help='Which distribution model to use for random variables. Format is "<distribution>(<arg1>, <arg2>,...)"')
 parser.add_argument('--netcdf3', '-3', default=False, action='store_true', help='Output a NetCDF3 file instead of a NetCDF4')
 parser.add_argument('--height', '-H', type=int, default=None, help='Add a fourth dimension - height - with the given amount of entries')
@@ -60,7 +61,7 @@ def generate_file(args, index, rng_func, extra_attributes):
         var_name = f'var_{i}'
         encode_vars = {}
         if args.compression is not None:
-            encode_vars = encode_vars | dict(zlib=True, complevel=args.compression)
+            encode_vars = encode_vars | dict(zlib=True, complevel=args.compression, shuffle=(not args.no_shuffle))
         
         if chunking is not None:
             encode_vars = encode_vars | dict(chunksizes=chunking)
@@ -236,7 +237,8 @@ def convert_to_zarr_args(args, kwargs):
                 new_dim_encoding['chunks'] = encoding['chunksizes']
             
             if encoding['complevel'] is not None:
-                new_dim_encoding['compressor'] = zarr.Blosc(cname='zstd', clevel=encoding['complevel'], shuffle=2)
+                shuffle = 2 if encoding['shuffle'] else 0
+                new_dim_encoding['compressor'] = zarr.Blosc(cname='zstd', clevel=encoding['complevel'], shuffle=shuffle)
             
             new_encoding[dim] = new_dim_encoding
         new_args['encoding'] = new_encoding
