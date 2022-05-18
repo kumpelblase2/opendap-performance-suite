@@ -29,10 +29,10 @@ from(bucket:"telegraf")
 """
 
 def mount_volume(path):
-    subprocess.run(['docker', 'volume', 'create', '--name=data_files', '--opt', 'type=none', '--opt', f'device={path}', '--opt', 'o=bind'])
+    subprocess.run(['docker', 'volume', 'create', '--name=data_files', '--opt', 'type=none', '--opt', f'device={path}', '--opt', 'o=bind'], capture_output=True)
 
 def unmount_volume():
-    subprocess.run(['docker', 'volume', 'rm', 'data_files'])
+    subprocess.run(['docker', 'volume', 'rm', 'data_files'], capture_output=True)
 
 def datapath_for_backend(backend):
     return BACKEND_RELATIVE_PATHS[backend]
