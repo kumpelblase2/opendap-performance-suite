@@ -3,7 +3,7 @@ import os
 import logging
 import time
 
-from backend import setup_backend, datapath_for_backend, append_backend_performance, get_storage_location, mount_volume, unmount_volume
+from backend import setup_backend, datapath_for_backend, append_backend_performance, get_storage_location, unmount_volume
 from testsuite import run_tests, store_results
 
 class StoreDictKeyPair(argparse.Action):
@@ -79,14 +79,10 @@ for test in tests:
 
 backend_base = args.backend_base
 if backend:
-    container_info = setup_backend(backend, tests, args.backend_config, args.backend_warmup)
+    container_info = setup_backend(backend, tests, args.backend_config, args.backend_warmup, args.volume)
     if backend_base is None:
         backend_base = f"http://localhost:{container_info['port']}/{datapath_for_backend(backend)}"
         logging.debug("Backend base URL is set to %s", backend_base)
-
-    if args.volume is not None:
-        logging.debug(f"Mounting volume at {args.volume}")
-        mount_volume(args.volume)
 
 files = get_dataset_files(args, backend_base)
 
@@ -102,7 +98,5 @@ if backend:
 store_results(result_runs, args.output, metadata=metadata)
 if backend:
     append_backend_performance(args.output, backend)
-    if args.volume is not None:
-        unmount_volume()
 
 logging.info("Written results to %s.", args.output)

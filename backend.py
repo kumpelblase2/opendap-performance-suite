@@ -80,16 +80,22 @@ def wait_backend(container):
             time.sleep(1)
 
 
-def shutdown_backend(backend, config, _tests):
+def shutdown_backend(backend, config, _tests, volume):
     logging.info("Shutting down backend...")
     subprocess.run(['docker-compose', '-f', f'{SCRIPT_LOCATION}/tests/{backend}/docker-compose-{config}.yml', 'exec', config + '-influx', 'bash', '-c', f'influx query --token telegraf --org telegraf -r \'{query}\' > /mnt/influx-data/output.csv'], check=True)
     subprocess.run(['docker-compose', '-f', f'{SCRIPT_LOCATION}/tests/{backend}/docker-compose-{config}.yml', 'exec', config + '-influx', '/bin/chown', '1000:1000', '/mnt/influx-data/output.csv'], check=True)
     subprocess.run(['docker-compose', '-f', f'{SCRIPT_LOCATION}/tests/{backend}/docker-compose-{config}.yml', 'down'],
                    check=True, capture_output=True)
+    if volume is not None:
+        logging.info("Unmounting volume...")
+        unmount_volume()
 
 
-def setup_backend(backend, tests, config='default', warmup_time=10):
-    atexit.register(shutdown_backend, backend, config, tests)
+def setup_backend(backend, tests, config='default', warmup_time=10, volume=None):
+    atexit.register(shutdown_backend, backend, config, tests, volume)
+    if volume is not None:
+        logging.debug(f"Mounting volume at {volume}")
+        mount_volume(volume)
     container_info = startup_backend(backend, config)
     if backend == 'thredds':
         wait_backend(container_info['container'])
