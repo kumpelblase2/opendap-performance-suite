@@ -228,22 +228,21 @@ def convert_to_zarr_args(args, kwargs):
         'store': f"{args.file}.zarr"
     }
 
-    if kwargs['encoding'] is not None:
+    if 'encoding' in kwargs and kwargs['encoding'] is not None:
         new_encoding = {}
         for dim in kwargs['encoding'].keys():
             new_dim_encoding = {}
             encoding = kwargs['encoding'][dim]
-            if encoding['chunksizes'] is not None:
+            if 'chunksizes' in encoding and encoding['chunksizes'] is not None:
                 new_dim_encoding['chunks'] = encoding['chunksizes']
             
-            if encoding['complevel'] is not None:
+            if 'complevel' in encoding and encoding['complevel'] is not None:
                 shuffle = 2 if encoding['shuffle'] else 0
                 new_dim_encoding['compressor'] = zarr.Blosc(cname='zstd', clevel=encoding['complevel'], shuffle=shuffle)
             
             new_encoding[dim] = new_dim_encoding
         new_args['encoding'] = new_encoding
     
-    new_args['safe_chunks'] = False
     return new_args
 
 args = parser.parse_args()
