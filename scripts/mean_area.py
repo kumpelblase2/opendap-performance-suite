@@ -9,8 +9,12 @@ class MeanAreaTest(scripts.test.Test):
         return {
             'variable': 'tp',
             'time_var': 'time',
+            'latitude': None,
+            'longitude': None,
             'time': '10',
-            'dask': '0'
+            'dask': '0',
+            'height_var': None,
+            'height': '0',
         }
 
     def do_test(self, context):
@@ -19,6 +23,14 @@ class MeanAreaTest(scripts.test.Test):
         args = self.args
         time = int(args['time'])
         selector = {args['time_var']: time}
+        if args['height_var'] is not None:
+            selector[args['height_var']] = int(args['height'])
+
+        if args['latitude'] is not None:
+            selector['latitude'] = range(0, int(args['latitude']))
+        if args['longitude'] is not None:
+            selector['longitude'] = range(0, int(args['longitude']))
+        
         context.start()
         var = dataset[args['variable']]
         selection = var.isel(selector)
