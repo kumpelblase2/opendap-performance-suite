@@ -1,4 +1,5 @@
 from dask.distributed import Client
+from dask.array import Array
 from abc import abstractmethod
 import time
 import xarray
@@ -86,6 +87,9 @@ class Test:
     
     def is_unstructured(self, ds):
         return 'ncells' in ds.dims
+
+    def is_lazy(self, array):
+        return isinstance(array, Array)
 
     def run(self, files, reruns, args):
         context = Context()

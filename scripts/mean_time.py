@@ -45,7 +45,7 @@ class MeanTimeTest(scripts.test.Test):
         context.start()
         selection = var.isel(selection_def)
         mean = selection.mean()
-        if self.is_dask_enabled() or self.is_zarr_archive(context):
+        if self.is_dask_enabled() or self.is_zarr_archive(context) or self.is_lazy(mean):
             mean = mean.compute()
         logging.debug("(%s) Mean at lat/lon index (%d, %d): %.2f", context.input, 30, 30, mean)
         context.end()
