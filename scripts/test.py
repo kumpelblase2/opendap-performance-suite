@@ -25,6 +25,17 @@ class Context:
         }
         self.start_times.pop(name)
 
+    def cancel(self):
+        for name in self.start_times:
+            start = self.start_times[name]
+            self.times[name] = {
+                'start': start,
+                'end': 0,
+                'total': 0
+            }
+        
+        self.start_times.clear()
+
     def finish_run(self):
         self.runs.append(self.times)
         self.times = {}
@@ -85,7 +96,14 @@ class Test:
                 c = Client('localhost:8786')
 
             for i in range(reruns):
-                self.do_test(context)
+                try:
+                    self.do_test(context)
+                except KeyboardInterrupt as e:
+                    raise e
+                except Exception as e:
+                    print(e)
+                    context.cancel()
+                
                 context.finish_run()
             
             if self.is_dask_enabled():
