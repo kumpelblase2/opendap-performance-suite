@@ -11,7 +11,9 @@ class MeanTimeTest(scripts.test.Test):
             'time': 'time',
             'time_range': None,
             'dask': '0',
-            'time_chunk': '100'
+            'time_chunk': '100',
+            'height_var': None,
+            'height': '0',
         }
 
     def do_test(self, context):
@@ -25,19 +27,25 @@ class MeanTimeTest(scripts.test.Test):
         if self.is_unstructured(dataset):
             selection_def = { 'ncells' : 120 }
         else:
+            lat_var = [key for key in ['lat', 'latitude', args['latitude']] if key in dataset.dims.keys()][0]
+            lon_var = [key for key in ['lon', 'longitude', args['longitude']] if key in dataset.dims.keys()][0]
+
             selection_def = {
-                args['longitude']: 30,
-                args['latitude']: 30
+                lon_var: 30,
+                lat_var: 30
             }
 
         
         if args['time_range'] != None:
             selection_def[args['time']] = range(0, int(args['time_range']) * 365)
 
+        if args['height_var'] is not None:
+            selection_def[args['height_var']] = int(args['height'])
+
         context.start()
         selection = var.isel(selection_def)
         mean = selection.mean()
         if self.is_dask_enabled() or self.is_zarr_archive(context):
             mean = mean.compute()
-        logging.debug("(%s) Mean at lat/lon index (%d, %d): %.2f", context.input, 30, 50, mean)
+        logging.debug("(%s) Mean at lat/lon index (%d, %d): %.2f", context.input, 30, 30, mean)
         context.end()
