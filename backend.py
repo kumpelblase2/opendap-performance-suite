@@ -107,7 +107,9 @@ def setup_backend(backend, tests, config='default', warmup_time=10, volume=None)
 
 
 def append_backend_performance(output_dir, backend):
-    shutil.copyfile(f'tests/{backend}/measurement-output/output.csv', os.path.join(output_dir, 'monitor.csv'))
+    source_file = f'{SCRIPT_LOCATION}/tests/{backend}/measurement-output/output.csv'
+    logging.debug("Copying monitoring results from " + source_file)
+    shutil.copyfile(source_file, os.path.join(output_dir, 'monitor.csv'))
 
 
 def get_storage_location():
