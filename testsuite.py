@@ -5,11 +5,13 @@ import os
 import scripts.simple
 import scripts.mean_time
 import scripts.mean_area
+import scripts.rolling_mean_time
 
 TESTS = {
     'dataset-access': scripts.simple.SimpleTest(),
     'mean-time': scripts.mean_time.MeanTimeTest(),
-    'mean-area': scripts.mean_area.MeanAreaTest()
+    'mean-area': scripts.mean_area.MeanAreaTest(),
+    'rolling-mean-time': scripts.rolling_mean_time.RollingMeanTimeTest()
 }
 
 

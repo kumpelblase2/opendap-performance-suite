@@ -3,7 +3,7 @@ import os
 import logging
 import time
 
-from backend import setup_backend, datapath_for_backend, append_backend_performance, get_storage_location, unmount_volume
+from backend import setup_backend, datapath_for_backend, append_backend_performance, get_storage_location
 from testsuite import run_tests, store_results
 
 class StoreDictKeyPair(argparse.Action):
@@ -32,7 +32,8 @@ AVAILABLE_BACKENDS = ['thredds', 'hyrax', 'dars']
 AVAILABLE_TESTS = {
     'dataset-access': 'Simple accessing test',
     'mean-time': 'Calculate a mean value at a specific point in space over all time values',
-    'mean-area': 'Calculate a mean value at a specific point in time the full area'
+    'mean-area': 'Calculate a mean value at a specific point in time the full area',
+    'rolling-mean-time': 'Calculate a mean, grouped by year and month.'
 }
 POSSIBLE_TEST_VALUES = list(AVAILABLE_TESTS.keys()) + ['ALL']
 SCRIPT_LOCATION = os.path.dirname(os.path.realpath(__file__))
