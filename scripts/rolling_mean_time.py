@@ -55,7 +55,7 @@ class RollingMeanTimeTest(scripts.test.Test):
         else:
             groups = selection.groupby('time.month')
             mean_values = groups.mean()
-            if self.is_lazy(mean_values):
+            if self.is_lazy(mean_values) or self.is_zarr_archive(context):
                 mean_values = mean_values.compute()    
 
         context.end()
