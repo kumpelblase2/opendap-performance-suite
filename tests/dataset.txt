@@ -1,3 +1,0 @@
-regclim/gridded_data/reanalyses/era5/aggregated/ERA5_daily_tp_1979_2018.nc
-regclim/raster/global/era5/sfc/virt_agg
-regclim/raster/global/era5/sfc/daily/ERA5_daily_tp_1979.nc

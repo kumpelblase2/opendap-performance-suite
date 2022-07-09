@@ -19,9 +19,9 @@ services:
   default-backend:
     build: ./
     depends_on:
-      - dars-influx
+      - default-influx
     links:
-      - dars-influx
+      - default-influx
     ports:
       - "80"
     volumes:

@@ -19,9 +19,9 @@ services:
   default-backend:
     build: ./
     depends_on:
-      - hyrax-influx
+      - default-influx
     links:
-      - hyrax-influx
+      - default-influx
     ports:
       - "8080"
     volumes:
