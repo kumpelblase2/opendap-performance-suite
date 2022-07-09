@@ -58,6 +58,9 @@ args = parser.parse_args()
 
 level = logging.DEBUG if args.verbose else logging.INFO
 logging.basicConfig(format='[%(levelname)s] %(asctime)s - %(message)s', datefmt='%Y/%m/%d-%H:%M:%S', level=level)
+logging.getLogger('fsspec.http').setLevel(logging.WARNING)
+logging.getLogger('botocore').setLevel(logging.WARNING)
+logging.getLogger('s3fs').setLevel(logging.WARNING)
 
 if os.path.exists(args.output) and os.path.isfile(args.output):
     logging.error("Output target exists and is a file. Please specify another output.")
